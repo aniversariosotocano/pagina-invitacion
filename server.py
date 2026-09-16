@@ -28,6 +28,7 @@ DB_PATH = os.path.join(BASE_DIR, "assets", "data", "protocolo.db")
 JSON_INVITADOS_PATH = os.path.join(BASE_DIR, "assets", "data", "invitados.json")
 JSON_CONFIG_PATH = os.path.join(BASE_DIR, "assets", "data", "config.json")
 PUBLIC_BASE_URL = os.environ.get("PROTOCOLO_PUBLIC_URL", "https://aniversariosotocano.pythonanywhere.com").strip().rstrip("/")
+OG_IMAGE_VERSION = "2"
 SESSION_TTL_SECONDS = 8 * 60 * 60
 COOKIE_SECURE = os.environ.get("PROTOCOLO_COOKIE_SECURE", "0").strip().lower() in {"1", "true", "yes"}
 ADMIN_USER = os.environ.get("PROTOCOLO_ADMIN_USER", "admin").strip() or "admin"
@@ -333,12 +334,13 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
 
     def _preview_url(self, data):
         if data.get("id"):
-            image_query = urlencode({"id": data["id"]})
+            image_query = urlencode({"id": data["id"], "v": OG_IMAGE_VERSION})
         else:
             image_query = urlencode({
                 key: value for key, value in data.items()
                 if value and key in {"tratamiento", "grado", "nombre", "cargo", "aniversario", "fecha", "hora", "nombre_evento"}
             })
+            image_query += f"&v={OG_IMAGE_VERSION}"
         return f"{PUBLIC_BASE_URL}/og-image.png?{image_query}"
 
     def serve_dynamic_invitation(self, params):
