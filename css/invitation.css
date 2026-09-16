@@ -1,0 +1,138 @@
+/* Invitación pública · Base Aérea Cnel. José Enrique Soto Cano */
+:root {
+  --ink: #071522;
+  --ink-deep: #030a12;
+  --paper: #f5f0e4;
+  --paper-muted: #d7d5ca;
+  --gold: #d7b35a;
+  --gold-soft: #f0d895;
+  --sky: #86b8d4;
+  --line: rgba(215, 179, 90, .42);
+  --line-soft: rgba(245, 240, 228, .16);
+  --display: Georgia, 'Times New Roman', serif;
+  --body: Arial, 'Helvetica Neue', sans-serif;
+  --frame-radius: 6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { font-size: 16px; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  min-height: 100dvh;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--paper);
+  font-family: var(--body);
+  line-height: 1.5;
+  background:
+    linear-gradient(120deg, rgba(3, 10, 18, .96) 0%, rgba(5, 19, 33, .82) 42%, rgba(3, 10, 18, .96) 100%),
+    url('../assets/images/tucano-atardecer.webp') center / cover fixed;
+}
+button { font: inherit; }
+.skip-link { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skip-link:focus { position: fixed; left: 1rem; top: .75rem; z-index: 20; width: auto; height: auto; padding: .65rem 1rem; overflow: visible; clip: auto; color: var(--ink); background: var(--gold-soft); }
+
+.main-wrapper { width: min(100%, 820px); min-height: 100dvh; margin: 0 auto; padding: clamp(1rem, 4vw, 2.5rem) clamp(.75rem, 4vw, 2rem) 2rem; }
+.ceremonial-frame {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(1.35rem, 4vw, 3.2rem) clamp(1.1rem, 5vw, 3.6rem) clamp(1.3rem, 4vw, 2.6rem);
+  background: linear-gradient(145deg, rgba(10, 31, 51, .96), rgba(4, 15, 27, .94));
+  border: 1px solid var(--line);
+  border-radius: var(--frame-radius);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, .48), inset 0 0 0 6px rgba(255, 255, 255, .018);
+}
+.ceremonial-frame::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(6, 20, 34, .15), rgba(2, 8, 15, .7)), var(--custom-theme-bg, url('../assets/images/tucano-atardecer.webp')) center 38% / cover;
+  opacity: .16;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+.ceremonial-frame::after { content: ''; position: absolute; z-index: -1; inset: 1rem; border: 1px solid rgba(215, 179, 90, .14); pointer-events: none; }
+.frame-line { position: absolute; top: 0; left: 12%; right: 12%; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); opacity: .8; }
+.corner-ornament { position: absolute; z-index: 2; width: 22px; height: 22px; border: 1px solid var(--gold); pointer-events: none; }
+.corner-top-left { top: .65rem; left: .65rem; border-right: 0; border-bottom: 0; }
+.corner-top-right { top: .65rem; right: .65rem; border-left: 0; border-bottom: 0; }
+.corner-bottom-left { bottom: .65rem; left: .65rem; border-right: 0; border-top: 0; }
+.corner-bottom-right { right: .65rem; bottom: .65rem; border-left: 0; border-top: 0; }
+
+.cover-content { position: relative; z-index: 1; display: flex; flex-direction: column; }
+.invitation-masthead { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; padding-bottom: 1.4rem; border-bottom: 1px solid var(--line-soft); }
+.emblem-container { display: grid; place-items: center; width: 82px; height: 82px; }
+.emblem-img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 7px 14px rgba(0, 0, 0, .55)); }
+.masthead-copy { min-width: 0; text-align: left; }
+.masthead-overline, .masthead-title, .masthead-location { margin: 0; }
+.masthead-overline { color: var(--gold-soft); font-size: .67rem; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
+.masthead-title { margin-top: .22rem; color: var(--paper); font-family: var(--display); font-size: clamp(.95rem, 2.5vw, 1.18rem); line-height: 1.2; }
+.masthead-location { margin-top: .35rem; color: var(--sky); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; }
+.header-badge { align-self: start; padding: .38rem .62rem; border: 1px solid var(--line); color: var(--gold-soft); font-size: .63rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+.invitation-intro { max-width: 34rem; margin: clamp(1.7rem, 5vw, 3rem) auto 0; text-align: center; }
+.institution-title { display: grid; gap: .32rem; margin: 0; color: var(--paper-muted); font-size: clamp(.86rem, 2.3vw, 1rem); line-height: 1.35; }
+.base-name { color: var(--paper); font-family: var(--display); font-size: 1.12em; font-weight: 700; }
+
+.anniversary-lockup { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: clamp(1rem, 3vw, 1.8rem); margin: clamp(1.65rem, 5vw, 2.5rem) 0 2rem; padding: 0 0 .35rem; border-bottom: 1px solid var(--line); }
+.anniversary-number { color: var(--gold-soft); font-family: var(--display); font-size: clamp(5.4rem, 17vw, 8.5rem); font-weight: 400; letter-spacing: -.08em; line-height: .76; text-shadow: 0 7px 24px rgba(0, 0, 0, .35); }
+.anniversary-copy { padding: .5rem 0 .2rem; text-align: left; }
+.anniversary-kicker { margin: 0 0 .35rem; color: var(--gold); font-size: .72rem; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+.anniversary-text { max-width: 26rem; margin: 0; color: var(--paper); font-family: var(--display); font-size: clamp(1.1rem, 3.6vw, 1.8rem); font-weight: 700; line-height: 1.1; text-transform: uppercase; white-space: pre-line; }
+
+.guest-section { padding: 1.15rem 0 1.35rem; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); text-align: left; }
+.section-label, .summary-label { margin: 0; color: var(--sky); font-size: .66rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+.guest-treatment { margin-top: .62rem; color: var(--paper-muted); font-size: .85rem; }
+.guest-rank { margin-top: .35rem; color: var(--gold-soft); font-size: .82rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.guest-name { margin: .2rem 0 .18rem; color: var(--paper); font-family: var(--display); font-size: clamp(1.65rem, 5.5vw, 2.55rem); font-weight: 700; line-height: 1.02; }
+.guest-role { color: var(--paper-muted); font-size: .82rem; }
+
+.event-summary { display: grid; grid-template-columns: repeat(2, 1fr); margin-top: 1.55rem; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.event-summary-item { min-height: 6.2rem; padding: 1rem 1.05rem; border-right: 1px solid var(--line-soft); }
+.event-summary-item:nth-child(2) { border-right: 0; }
+.event-summary-wide { grid-column: 1 / -1; min-height: auto; border-top: 1px solid var(--line-soft); border-right: 0; }
+.event-summary-item strong, .event-summary-item span:not(.summary-label) { display: block; }
+.event-summary-item strong { margin-top: .38rem; color: var(--paper); font-size: .87rem; line-height: 1.25; }
+.event-summary-item span:not(.summary-label) { margin-top: .16rem; color: var(--paper-muted); font-size: .75rem; }
+
+.btn-cta-container { display: flex; justify-content: center; margin: 1.75rem 0 1.25rem; }
+.btn-ceremonial { display: inline-flex; align-items: center; justify-content: center; gap: .65rem; width: min(100%, 330px); min-height: 50px; padding: .8rem 1.1rem; border: 1px solid var(--gold-soft); border-radius: 2px; color: var(--ink); background: var(--gold-soft); box-shadow: 0 9px 20px rgba(0, 0, 0, .22); cursor: pointer; font-size: .8rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; transition: transform .2s ease, background .2s ease, box-shadow .2s ease; touch-action: manipulation; }
+.btn-ceremonial:hover { transform: translateY(-2px); background: #f6e3a4; box-shadow: 0 13px 26px rgba(0, 0, 0, .3); }
+.btn-ceremonial:active { transform: translateY(1px); }
+.btn-ceremonial:focus-visible, .btn-video-ctrl:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; }
+.btn-icon { font-size: .82rem; }
+
+.motto-banner { margin-top: .4rem; padding-top: .95rem; border-top: 1px solid var(--line-soft); text-align: center; }
+.motto-text { margin: 0; color: var(--gold); font-family: var(--display); font-size: .82rem; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; }
+
+.video-experience { display: none; width: 100%; flex-direction: column; align-items: center; opacity: 0; transform: translateY(10px); transition: opacity .38s ease, transform .38s ease; }
+.video-experience.active { display: flex; opacity: 1; transform: translateY(0); }
+.video-heading { width: 100%; padding: .3rem 0 1rem; text-align: left; }
+.video-heading h2 { margin: .25rem 0 0; color: var(--paper); font-family: var(--display); font-size: clamp(1.4rem, 4vw, 2rem); }
+.video-player-card { width: min(100%, 440px); aspect-ratio: 478 / 850; max-height: min(74dvh, 740px); overflow: hidden; background: #000; border: 1px solid var(--gold); border-radius: 2px; box-shadow: 0 18px 45px rgba(0, 0, 0, .55); }
+.video-player-card video { display: block; width: 100%; height: 100%; object-fit: contain; background: #000; }
+.video-actions { display: flex; justify-content: space-between; gap: .7rem; width: min(100%, 440px); margin-top: .85rem; }
+.btn-video-ctrl { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-width: 44px; min-height: 44px; padding: .55rem .8rem; border: 1px solid var(--line); border-radius: 2px; color: var(--paper); background: rgba(255, 255, 255, .06); cursor: pointer; font-size: .76rem; touch-action: manipulation; }
+.btn-video-ctrl:hover { background: rgba(215, 179, 90, .14); }
+.video-footer-note { width: 100%; margin-top: 1.35rem; padding-top: .9rem; border-top: 1px solid var(--line-soft); color: var(--paper-muted); font-size: .72rem; letter-spacing: .05em; text-align: center; }
+
+.site-footer { padding: 1.25rem .5rem 0; color: rgba(215, 213, 202, .65); font-size: .7rem; line-height: 1.5; text-align: center; }
+.site-footer p { margin: .1rem 0; }
+
+@media (max-width: 560px) {
+  .ceremonial-frame::after { inset: .7rem; }
+  .invitation-masthead { grid-template-columns: auto 1fr; gap: .75rem; }
+  .emblem-container { width: 68px; height: 68px; }
+  .header-badge { grid-column: 1 / -1; justify-self: start; margin-top: .2rem; }
+  .masthead-title { font-size: .9rem; }
+  .masthead-location { font-size: .59rem; letter-spacing: .08em; }
+  .event-summary { grid-template-columns: 1fr; }
+  .event-summary-item { min-height: auto; border-right: 0; }
+  .event-summary-item + .event-summary-item { border-top: 1px solid var(--line-soft); }
+  .event-summary-wide { grid-column: auto; }
+  .btn-ceremonial { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

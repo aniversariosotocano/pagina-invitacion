@@ -1,0 +1,26 @@
+.users-layout { max-width: 980px; margin: 0 auto; display: grid; gap: 1rem; }
+.users-card { padding: clamp(1rem, 3vw, 1.5rem); }
+.users-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: .8rem; align-items: end; padding: 1rem; border: 1px solid var(--admin-card-border); border-radius: 10px; background: rgba(4, 16, 30, .55); }
+.users-form .form-group { margin: 0; }
+.users-form .btn-primary { min-height: 44px; white-space: nowrap; }
+.users-help { margin: .7rem 0 0; color: var(--admin-text-sub); font-size: .78rem; }
+.users-message { min-height: 1.25rem; margin: .75rem 0 0; color: #8fe4a1; font-size: .82rem; }
+.users-message.error { color: #ffb0af; }
+.security-divider { height: 1px; margin: 1.5rem 0; background: var(--admin-card-border); }
+.password-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: .8rem; align-items: end; }
+.password-form .form-group { margin: 0; }
+.password-form .btn-secondary { min-height: 44px; white-space: nowrap; }
+.users-table-wrap { overflow-x: auto; }
+.users-table { width: 100%; border-collapse: collapse; min-width: 650px; }
+.users-table th, .users-table td { padding: .8rem .65rem; border-bottom: 1px solid var(--admin-card-border); text-align: left; vertical-align: middle; }
+.users-table th { color: var(--admin-gold-light); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
+.users-table td { color: var(--admin-text); font-size: .86rem; }
+.user-status { display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .55rem; border-radius: 999px; background: rgba(125, 232, 148, .12); color: #8fe4a1; font-size: .72rem; font-weight: 800; }
+.user-status.inactive { background: rgba(255, 176, 175, .1); color: #ffb0af; }
+.user-action { min-height: 40px; padding: .45rem .65rem; border: 1px solid var(--admin-card-border); border-radius: 6px; background: transparent; color: var(--admin-text); cursor: pointer; }
+.user-action:hover { border-color: var(--admin-gold); color: var(--admin-gold-soft); }
+
+@media (max-width: 720px) {
+  .users-form, .password-form { grid-template-columns: 1fr; }
+  .users-form .btn-primary, .password-form .btn-secondary { width: 100%; }
+}
