@@ -294,8 +294,10 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
         params = parse_qs(parsed.query)
 
         if path == '/':
-            path = '/index.html'
-            self.path = path
+            # La raíz es la puerta de entrada administrativa; las invitaciones
+            # públicas continúan disponibles mediante sus enlaces directos.
+            self.redirect_to_login('/admin.html')
+            return
 
         if path in PROTECTED_PAGES and not self.current_user():
             self.redirect_to_login(path)

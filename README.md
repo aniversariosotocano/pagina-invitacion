@@ -40,7 +40,7 @@ pagina-invitacion/
 ## ⚙️ Cómo Funciona el Sistema
 
 ### 1. Invitación Oficial (`index.html`)
-* Muestra por defecto la invitación de honor para el **General de Brigada Walter Yanuario Paz López** (Comandante General de la FAH).
+* Se abre mediante un enlace directo personalizado; la raíz del sitio dirige al login del sistema.
 * **Parámetros dinámicos en URL**: Se adapta instantáneamente para cualquier persona, fecha o año:
   `index.html?nombre=CORONEL+EJEMPLO&grado=CORONEL+DE+AVIACION&cargo=JEFE+DE+DEPARTAMENTO&fecha=24+de+Septiembre+de+2026&hora=10:00+am&aniversario=38`
 * **Transición Ceremonial**: Al presionar **"VER INVITACIÓN"**, oculta suavemente la portada y revela el video oficial con audio interactivo, además de los datos de fecha, hora, lugar y vestimenta.
