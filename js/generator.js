@@ -125,6 +125,7 @@ function processLoadedGuests(data) {
   guestList = data.map((item, idx) => ({
     no: item.no || idx + 1,
     id: item.id || 'invitado-' + (idx + 1),
+    public_token: item.public_token || '',
     categoria: item.categoria || 'Invitado Especial',
     tratamiento: item.tratamiento || 'Al:',
     grado: item.grado || '',
@@ -274,6 +275,10 @@ function renderGuestTable() {
 
     tr.querySelector('.btn-tbl-copy').addEventListener('click', () => {
       const url = buildGuestUrl(guest);
+      if (!url) {
+        showToast('Guarde el invitado antes de generar el enlace.');
+        return;
+      }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(() => {
           showToast(`Enlace copiado: ${guest.nombre}`);
@@ -484,6 +489,10 @@ function initModals() {
     btnModalCopy.addEventListener('click', () => {
       const data = getModalFormData();
       const url = buildGuestUrl(data);
+      if (!url) {
+        showToast('Guarde el invitado antes de generar el enlace.');
+        return;
+      }
       navigator.clipboard.writeText(url).then(() => {
         showToast('Enlace copiado al portapapeles');
       });
@@ -513,6 +522,10 @@ function initModals() {
     btnPrevCopy.addEventListener('click', () => {
       if (!activeGuestForPreview) return;
       const url = buildGuestUrl(activeGuestForPreview);
+      if (!url) {
+        showToast('Guarde el invitado antes de generar el enlace.');
+        return;
+      }
       navigator.clipboard.writeText(url).then(() => {
         showToast('Enlace copiado al portapapeles');
       });
@@ -524,6 +537,10 @@ function initModals() {
     btnPrevTab.addEventListener('click', () => {
       if (!activeGuestForPreview) return;
       const url = buildGuestUrl(activeGuestForPreview);
+      if (!url) {
+        showToast('Guarde el invitado antes de generar el enlace.');
+        return;
+      }
       window.open(url, '_blank');
     });
   }
@@ -636,6 +653,7 @@ function getModalFormData() {
 
   return {
     id: guestId,
+    public_token: existing ? (existing.public_token || '') : '',
     no: parseInt(document.getElementById('modalGuestNo').value, 10) || guestList.length + 1,
     categoria: document.getElementById('modalCategoria').value.trim() || 'Invitado Especial',
     tratamiento: document.getElementById('modalTratamiento').value.trim(),
@@ -687,6 +705,8 @@ async function saveModalGuest() {
       showToast('No se pudo guardar el invitado en el servidor');
       return;
     }
+    const saved = await res.json();
+    data.public_token = saved.public_token || data.public_token || '';
   } catch (e) {
     console.warn('API no disponible para guardar invitado:', e);
     showToast('No se pudo conectar al servidor; los cambios no se guardaron');
@@ -839,13 +859,13 @@ function downloadGuestCardDirect(guest) {
 
 /**
  * 6. CONSTRUCCIÓN DE ENLACE PERSONALIZADO
- * El ID es la única fuente de datos del enlace público.
+ * El token público es la única fuente de datos del enlace público.
  */
 function buildGuestUrl(guest) {
   const base = window.location.origin + window.location.pathname.replace('admin.html', '').replace(/\/$/, '') + '/index.html';
-  const guestId = String(guest?.id || '').trim();
-  if (!guestId) return base;
-  return `${base}?${new URLSearchParams({ id: guestId }).toString()}`;
+  const publicToken = String(guest?.public_token || '').trim();
+  if (!publicToken) return '';
+  return `${base}?${new URLSearchParams({ id: publicToken }).toString()}`;
 }
 
 /**
