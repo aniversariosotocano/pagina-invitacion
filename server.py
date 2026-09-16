@@ -162,6 +162,18 @@ def ensure_public_token_schema():
     conn.commit()
     conn.close()
 
+def public_token_is_active(public_token):
+    """Comprueba que un token público corresponda a una invitación activa."""
+    if not re.fullmatch(rf'[A-Za-z0-9_-]{{{PUBLIC_TOKEN_LENGTH}}}', str(public_token or '')):
+        return False
+    conn = get_db()
+    row = conn.execute(
+        "SELECT 1 FROM invitados WHERE public_token = ? AND activo = 1 LIMIT 1",
+        (public_token,),
+    ).fetchone()
+    conn.close()
+    return row is not None
+
 def sync_json_files():
     conn = get_db()
     cursor = conn.cursor()
@@ -458,11 +470,17 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
         params = parse_qs(parsed.query)
 
         if path == '/og-image.png':
+            if 'id' in params and not public_token_is_active(params.get('id', [''])[0].strip()):
+                self.send_json({"error": "Invitación no encontrada"}, status=404)
+                return
             preview = render_preview(self.preview_data(params))
             self.send_bytes(preview, 'image/png', headers={'Cache-Control': 'public, max-age=300'})
             return
 
         if path == '/index.html' and any(key in params for key in ('id', 'nombre')):
+            if 'id' in params and not public_token_is_active(params.get('id', [''])[0].strip()):
+                self.send_json({"error": "Invitación no encontrada"}, status=404)
+                return
             self.serve_dynamic_invitation(params)
             return
 
