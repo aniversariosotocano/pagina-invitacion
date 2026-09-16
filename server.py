@@ -309,6 +309,7 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
             "fecha": self._preview_value(params, "fecha", "24 de Septiembre de 2026", 120),
             "hora": self._preview_value(params, "hora", "10:00 am", 80),
             "nombre_evento": self._preview_value(params, "nombre_evento", "Aniversario de la Base Aérea “Cnel. José Enrique Soto Cano”", 180),
+            "tema": self._preview_value(params, "tema", "tucano-sunset", 40),
         }
 
         guest_id = self._preview_value(params, "id", "", 40)
@@ -319,7 +320,7 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
                 guest_ids.append(f"invitado-{guest_id}")
             conn = get_db()
             row = conn.execute(
-                f"SELECT tratamiento, grado, nombre, cargo FROM invitados WHERE id IN ({','.join('?' for _ in guest_ids)}) ORDER BY CASE id "
+                f"SELECT tratamiento, grado, nombre, cargo, plantilla_id FROM invitados WHERE id IN ({','.join('?' for _ in guest_ids)}) ORDER BY CASE id "
                 + " ".join(f"WHEN ? THEN {index}" for index, _ in enumerate(guest_ids))
                 + " ELSE 99 END LIMIT 1",
                 tuple(guest_ids) + tuple(guest_ids),
@@ -329,6 +330,8 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
                 for key in ("tratamiento", "grado", "nombre", "cargo"):
                     if row[key]:
                         data[key] = str(row[key]).strip()[:240]
+                if row["plantilla_id"]:
+                    data["tema"] = str(row["plantilla_id"]).strip()[:40]
 
         return data
 
@@ -338,7 +341,7 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
         else:
             image_query = urlencode({
                 key: value for key, value in data.items()
-                if value and key in {"tratamiento", "grado", "nombre", "cargo", "aniversario", "fecha", "hora", "nombre_evento"}
+                if value and key in {"tratamiento", "grado", "nombre", "cargo", "aniversario", "fecha", "hora", "nombre_evento", "tema"}
             })
             image_query += f"&v={OG_IMAGE_VERSION}"
         return f"{PUBLIC_BASE_URL}/og-image.png?{image_query}"
