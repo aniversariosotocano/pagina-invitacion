@@ -69,9 +69,9 @@ def render_preview(data):
         emblem.thumbnail((92, 92), Image.Resampling.LANCZOS)
         canvas.alpha_composite(emblem, (WIDTH - 142, 58))
 
-    treatment = _text(data.get("tratamiento"), "Invitación especial")
+    treatment = _text(data.get("tratamiento"))
     grade = _text(data.get("grado"))
-    name = _text(data.get("nombre"), "Invitado especial")
+    name = _text(data.get("nombre"))
     event = _text(data.get("nombre_evento"), "Aniversario de la Base Aérea Soto Cano")
     date = _text(data.get("fecha"))
     hour = _text(data.get("hora"))
@@ -79,10 +79,12 @@ def render_preview(data):
     draw.text((72, 68), "FUERZA AÉREA HONDUREÑA", fill=gold, font=_font(22, True))
     draw.text((72, 104), event.replace("<br>", " "), fill=white, font=_fit_text(draw, event.replace("<br>", " "), 930, 27, True, 20))
     draw.line((72, 158, 820, 158), fill=gold, width=2)
-    draw.text((72, 190), treatment, fill=muted, font=_fit_text(draw, treatment, 1000, 28, False, 20))
+    if treatment:
+        draw.text((72, 190), treatment, fill=muted, font=_fit_text(draw, treatment, 1000, 28, False, 20))
     if grade:
         draw.text((72, 238), grade.upper(), fill=gold, font=_fit_text(draw, grade.upper(), 1000, 30, True, 22))
-    draw.text((72, 288), name.upper(), fill=white, font=_fit_text(draw, name.upper(), 1030, 52, True, 28))
+    if name:
+        draw.text((72, 288), name.upper(), fill=white, font=_fit_text(draw, name.upper(), 1030, 52, True, 28))
 
     cargo = _text(data.get("cargo"))
     if cargo:

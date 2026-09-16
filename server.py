@@ -300,9 +300,9 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
 
     def preview_data(self, params):
         data = {
-            "tratamiento": self._preview_value(params, "tratamiento", "Invitación especial"),
+            "tratamiento": self._preview_value(params, "tratamiento"),
             "grado": self._preview_value(params, "grado"),
-            "nombre": self._preview_value(params, "nombre", "Invitado especial"),
+            "nombre": self._preview_value(params, "nombre"),
             "cargo": self._preview_value(params, "cargo"),
             "aniversario": self._preview_value(params, "aniversario", "38", 12),
             "fecha": self._preview_value(params, "fecha", "24 de Septiembre de 2026", 120),
@@ -311,12 +311,17 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
         }
 
         guest_id = self._preview_value(params, "id", "", 40)
-        if guest_id.isdigit():
+        if guest_id and re.fullmatch(r'[A-Za-z0-9_-]{1,40}', guest_id):
             data["id"] = guest_id
+            guest_ids = [guest_id]
+            if guest_id.isdigit():
+                guest_ids.append(f"invitado-{guest_id}")
             conn = get_db()
             row = conn.execute(
-                "SELECT tratamiento, grado, nombre, cargo FROM invitados WHERE id = ?",
-                (int(guest_id),),
+                f"SELECT tratamiento, grado, nombre, cargo FROM invitados WHERE id IN ({','.join('?' for _ in guest_ids)}) ORDER BY CASE id "
+                + " ".join(f"WHEN ? THEN {index}" for index, _ in enumerate(guest_ids))
+                + " ELSE 99 END LIMIT 1",
+                tuple(guest_ids) + tuple(guest_ids),
             ).fetchone()
             conn.close()
             if row:
@@ -341,11 +346,13 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
         with open(os.path.join(BASE_DIR, "index.html"), "r", encoding="utf-8") as file:
             document = file.read()
 
-        name = escape(data["nombre"], quote=True)
+        raw_name = data["nombre"]
+        name = escape(raw_name, quote=True)
         event = escape(data["nombre_evento"].replace("<br>", " "), quote=True)
-        title = escape(f"Invitación para {data['nombre']}", quote=True)
+        title = escape(f"Invitación para {raw_name}" if raw_name else "Invitación al 38 Aniversario", quote=True)
+        description_parts = [part for part in (data["tratamiento"], data["grado"], raw_name) if part]
         description = escape(
-            f"{data['tratamiento']} {data['grado']} {data['nombre']}. {event}. {data['fecha']} a las {data['hora']}.",
+            f"{' '.join(description_parts)}. {event}. {data['fecha']} a las {data['hora']}.",
             quote=True,
         )
         image_url = escape(self._preview_url(data), quote=True)
@@ -450,10 +457,15 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
             if not guest_id:
                 self.send_json({"error": "ID requerido"}, status=400)
                 return
+            guest_ids = [guest_id]
+            if guest_id.isdigit():
+                guest_ids.append(f"invitado-{guest_id}")
             conn = get_db()
             row = conn.execute(
-                "SELECT id, tratamiento, grado, nombre, cargo, activo, plantilla_id, plantilla_version FROM invitados WHERE id = ?",
-                (guest_id,)
+                f"SELECT id, tratamiento, grado, nombre, cargo, activo, plantilla_id, plantilla_version FROM invitados WHERE id IN ({','.join('?' for _ in guest_ids)}) ORDER BY CASE id "
+                + " ".join(f"WHEN ? THEN {index}" for index, _ in enumerate(guest_ids))
+                + " ELSE 99 END LIMIT 1",
+                tuple(guest_ids) + tuple(guest_ids)
             ).fetchone()
             conn.close()
             if not row:
