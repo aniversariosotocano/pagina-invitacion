@@ -312,26 +312,40 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
             "tema": self._preview_value(params, "tema", "tucano-sunset", 40),
         }
 
+        conn = get_db()
+        config_row = conn.execute(
+            "SELECT aniversario, fecha_evento, hora_evento, nombre_evento FROM config_global WHERE id = 1"
+        ).fetchone()
+        if config_row:
+            config_values = {
+                "aniversario": config_row["aniversario"],
+                "fecha": config_row["fecha_evento"],
+                "hora": config_row["hora_evento"],
+                "nombre_evento": config_row["nombre_evento"],
+            }
+            for key, value in config_values.items():
+                if not str(params.get(key, [""])[0] or "").strip() and value:
+                    data[key] = str(value).strip()[:180]
+
         guest_id = self._preview_value(params, "id", "", 40)
         if guest_id and re.fullmatch(r'[A-Za-z0-9_-]{1,40}', guest_id):
             data["id"] = guest_id
             guest_ids = [guest_id]
             if guest_id.isdigit():
                 guest_ids.append(f"invitado-{guest_id}")
-            conn = get_db()
             row = conn.execute(
                 f"SELECT tratamiento, grado, nombre, cargo, plantilla_id FROM invitados WHERE id IN ({','.join('?' for _ in guest_ids)}) ORDER BY CASE id "
                 + " ".join(f"WHEN ? THEN {index}" for index, _ in enumerate(guest_ids))
                 + " ELSE 99 END LIMIT 1",
                 tuple(guest_ids) + tuple(guest_ids),
             ).fetchone()
-            conn.close()
             if row:
                 for key in ("tratamiento", "grado", "nombre", "cargo"):
                     if row[key]:
                         data[key] = str(row[key]).strip()[:240]
                 if row["plantilla_id"]:
                     data["tema"] = str(row["plantilla_id"]).strip()[:40]
+        conn.close()
 
         return data
 
