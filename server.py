@@ -183,6 +183,18 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=BASE_DIR, **kwargs)
 
+    def log_message(self, format, *args):
+        """No guardar nombres ni otros datos de invitación en los logs."""
+        request_line = self.requestline.split(' ', 2)
+        if len(request_line) == 3:
+            request_line[1] = request_line[1].split('?', 1)[0]
+            message = f'{request_line[0]} {request_line[1]} {request_line[2]}'
+        else:
+            message = format % args
+        sys.stderr.write('%s - - [%s] %s\n' % (
+            self.address_string(), self.log_date_time_string(), message
+        ))
+
     def copyfile(self, source, outputfile):
         """Una navegación o recarga puede cancelar una descarga en curso."""
         try:
@@ -288,6 +300,7 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
 
         guest_id = self._preview_value(params, "id", "", 40)
         if guest_id.isdigit():
+            data["id"] = guest_id
             conn = get_db()
             row = conn.execute(
                 "SELECT tratamiento, grado, nombre, cargo FROM invitados WHERE id = ?",
@@ -302,10 +315,13 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
         return data
 
     def _preview_url(self, data):
-        image_query = urlencode({
-            key: value for key, value in data.items()
-            if value and key in {"tratamiento", "grado", "nombre", "cargo", "aniversario", "fecha", "hora", "nombre_evento"}
-        })
+        if data.get("id"):
+            image_query = urlencode({"id": data["id"]})
+        else:
+            image_query = urlencode({
+                key: value for key, value in data.items()
+                if value and key in {"tratamiento", "grado", "nombre", "cargo", "aniversario", "fecha", "hora", "nombre_evento"}
+            })
         return f"{PUBLIC_BASE_URL}/og-image.png?{image_query}"
 
     def serve_dynamic_invitation(self, params):
