@@ -4,14 +4,17 @@ import json
 import sqlite3
 import re
 import base64
+from html import escape
 import hashlib
 import hmac
 import secrets
 import threading
 import time
 from http.cookies import SimpleCookie
-from urllib.parse import urlparse, parse_qs, quote
+from urllib.parse import urlparse, parse_qs, quote, urlencode
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+from og_preview import render_preview
 
 HOST = os.environ.get("PROTOCOLO_HOST", "127.0.0.1")
 PORT = int(os.environ.get("PROTOCOLO_PORT", "8000"))
@@ -24,6 +27,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "assets", "data", "protocolo.db")
 JSON_INVITADOS_PATH = os.path.join(BASE_DIR, "assets", "data", "invitados.json")
 JSON_CONFIG_PATH = os.path.join(BASE_DIR, "assets", "data", "config.json")
+PUBLIC_BASE_URL = os.environ.get("PROTOCOLO_PUBLIC_URL", "https://aniversariosotocano.pythonanywhere.com").strip().rstrip("/")
 SESSION_TTL_SECONDS = 8 * 60 * 60
 COOKIE_SECURE = os.environ.get("PROTOCOLO_COOKIE_SECURE", "0").strip().lower() in {"1", "true", "yes"}
 ADMIN_USER = os.environ.get("PROTOCOLO_ADMIN_USER", "admin").strip() or "admin"
@@ -199,6 +203,15 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def send_bytes(self, body, content_type, status=200, headers=None):
+        self.send_response(status)
+        self.send_header('Content-Type', content_type)
+        self.send_header('Content-Length', str(len(body)))
+        for key, value in (headers or {}).items():
+            self.send_header(key, value)
+        self.end_headers()
+        self.wfile.write(body)
+
     def end_headers(self):
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Referrer-Policy', 'no-referrer')
@@ -257,6 +270,78 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
         self.end_headers()
 
     @staticmethod
+    def _preview_value(params, key, default="", max_length=240):
+        value = params.get(key, [default])[0]
+        return str(value or default).strip()[:max_length]
+
+    def preview_data(self, params):
+        data = {
+            "tratamiento": self._preview_value(params, "tratamiento", "Invitación especial"),
+            "grado": self._preview_value(params, "grado"),
+            "nombre": self._preview_value(params, "nombre", "Invitado especial"),
+            "cargo": self._preview_value(params, "cargo"),
+            "aniversario": self._preview_value(params, "aniversario", "38", 12),
+            "fecha": self._preview_value(params, "fecha", "24 de Septiembre de 2026", 120),
+            "hora": self._preview_value(params, "hora", "10:00 am", 80),
+            "nombre_evento": self._preview_value(params, "nombre_evento", "Aniversario de la Base Aérea “Cnel. José Enrique Soto Cano”", 180),
+        }
+
+        guest_id = self._preview_value(params, "id", "", 40)
+        if guest_id.isdigit():
+            conn = get_db()
+            row = conn.execute(
+                "SELECT tratamiento, grado, nombre, cargo FROM invitados WHERE id = ?",
+                (int(guest_id),),
+            ).fetchone()
+            conn.close()
+            if row:
+                for key in ("tratamiento", "grado", "nombre", "cargo"):
+                    if row[key]:
+                        data[key] = str(row[key]).strip()[:240]
+
+        return data
+
+    def _preview_url(self, data):
+        image_query = urlencode({
+            key: value for key, value in data.items()
+            if value and key in {"tratamiento", "grado", "nombre", "cargo", "aniversario", "fecha", "hora", "nombre_evento"}
+        })
+        return f"{PUBLIC_BASE_URL}/og-image.png?{image_query}"
+
+    def serve_dynamic_invitation(self, params):
+        data = self.preview_data(params)
+        with open(os.path.join(BASE_DIR, "index.html"), "r", encoding="utf-8") as file:
+            document = file.read()
+
+        name = escape(data["nombre"], quote=True)
+        event = escape(data["nombre_evento"].replace("<br>", " "), quote=True)
+        title = escape(f"Invitación para {data['nombre']}", quote=True)
+        description = escape(
+            f"{data['tratamiento']} {data['grado']} {data['nombre']}. {event}. {data['fecha']} a las {data['hora']}.",
+            quote=True,
+        )
+        image_url = escape(self._preview_url(data), quote=True)
+        current_url = escape(f"{PUBLIC_BASE_URL}/index.html?{urlencode(params, doseq=True)}", quote=True)
+
+        replacements = {
+            r'(<title>)[^<]*(</title>)': rf'\g<1>{title}\g<2>',
+            r'(<meta property="og:title" content=")[^"]*(")': rf'\g<1>{title}\g<2>',
+            r'(<meta property="og:description" content=")[^"]*(")': rf'\g<1>{description}\g<2>',
+            r'(<meta property="og:image" content=")[^"]*(")': rf'\g<1>{image_url}\g<2>',
+            r'(<meta name="twitter:title" content=")[^"]*(")': rf'\g<1>{title}\g<2>',
+            r'(<meta name="twitter:description" content=")[^"]*(")': rf'\g<1>{description}\g<2>',
+            r'(<meta name="twitter:image" content=")[^"]*(")': rf'\g<1>{image_url}\g<2>',
+        }
+        for pattern, replacement in replacements.items():
+            document = re.sub(pattern, replacement, document, count=1)
+        document = document.replace(
+            '</head>',
+            f'<meta property="og:url" content="{current_url}">\n</head>',
+            1,
+        )
+        self.send_bytes(document.encode('utf-8'), 'text/html; charset=utf-8', headers={'Cache-Control': 'no-cache'})
+
+    @staticmethod
     def session_cookie(token, max_age=SESSION_TTL_SECONDS):
         parts = [f"{SESSION_COOKIE}={token}", f"Max-Age={max_age}", "Path=/", "HttpOnly", "SameSite=Lax"]
         if COOKIE_SECURE:
@@ -292,6 +377,15 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
         params = parse_qs(parsed.query)
+
+        if path == '/og-image.png':
+            preview = render_preview(self.preview_data(params))
+            self.send_bytes(preview, 'image/png', headers={'Cache-Control': 'public, max-age=300'})
+            return
+
+        if path == '/index.html' and any(key in params for key in ('id', 'nombre')):
+            self.serve_dynamic_invitation(params)
+            return
 
         if path == '/':
             # La raíz es la puerta de entrada administrativa; las invitaciones
