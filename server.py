@@ -29,6 +29,8 @@ JSON_INVITADOS_PATH = os.path.join(BASE_DIR, "assets", "data", "invitados.json")
 JSON_CONFIG_PATH = os.path.join(BASE_DIR, "assets", "data", "config.json")
 PUBLIC_BASE_URL = os.environ.get("PROTOCOLO_PUBLIC_URL", "https://aniversariosotocano.pythonanywhere.com").strip().rstrip("/")
 OG_IMAGE_VERSION = "3"
+PUBLIC_TOKEN_BYTES = 12
+PUBLIC_TOKEN_LENGTH = 16
 SESSION_TTL_SECONDS = 8 * 60 * 60
 COOKIE_SECURE = os.environ.get("PROTOCOLO_COOKIE_SECURE", "0").strip().lower() in {"1", "true", "yes"}
 ADMIN_USER = os.environ.get("PROTOCOLO_ADMIN_USER", "admin").strip() or "admin"
@@ -133,6 +135,33 @@ def ensure_auth_schema():
         conn.commit()
     conn.close()
 
+def new_public_token(conn):
+    """Crea un identificador público corto, aleatorio y no enumerable."""
+    while True:
+        token = base64.urlsafe_b64encode(secrets.token_bytes(PUBLIC_TOKEN_BYTES)).decode("ascii").rstrip("=")
+        if len(token) != PUBLIC_TOKEN_LENGTH:
+            continue
+        if not conn.execute("SELECT 1 FROM invitados WHERE public_token = ?", (token,)).fetchone():
+            return token
+
+def ensure_public_token_schema():
+    """Migra invitados existentes y asigna tokens públicos sin tocar sus IDs internos."""
+    conn = get_db()
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(invitados)").fetchall()}
+    if "public_token" not in columns:
+        conn.execute("ALTER TABLE invitados ADD COLUMN public_token TEXT")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_invitados_public_token ON invitados(public_token)")
+    missing = conn.execute(
+        "SELECT id FROM invitados WHERE public_token IS NULL OR public_token = ''"
+    ).fetchall()
+    for row in missing:
+        conn.execute(
+            "UPDATE invitados SET public_token = ? WHERE id = ?",
+            (new_public_token(conn), row["id"]),
+        )
+    conn.commit()
+    conn.close()
+
 def sync_json_files():
     conn = get_db()
     cursor = conn.cursor()
@@ -156,11 +185,12 @@ def sync_json_files():
             json.dump(cfg, f, ensure_ascii=False, indent=2)
 
     # Sync invitados.json
-    cursor.execute("SELECT id, no, categoria, tratamiento, grado, nombre, cargo, activo, observaciones, plantilla_id, plantilla_version, updated_at FROM invitados ORDER BY no ASC")
+    cursor.execute("SELECT id, public_token, no, categoria, tratamiento, grado, nombre, cargo, activo, observaciones, plantilla_id, plantilla_version, updated_at FROM invitados ORDER BY no ASC")
     rows = cursor.fetchall()
     invitados = [
         {
             "id": r["id"],
+            "public_token": r["public_token"],
             "no": r["no"],
             "categoria": r["categoria"],
             "tratamiento": r["tratamiento"],
@@ -328,16 +358,11 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
                     data[key] = str(value).strip()[:180]
 
         guest_id = self._preview_value(params, "id", "", 40)
-        if guest_id and re.fullmatch(r'[A-Za-z0-9_-]{1,40}', guest_id):
+        if guest_id and re.fullmatch(rf'[A-Za-z0-9_-]{{{PUBLIC_TOKEN_LENGTH}}}', guest_id):
             data["id"] = guest_id
-            guest_ids = [guest_id]
-            if guest_id.isdigit():
-                guest_ids.append(f"invitado-{guest_id}")
             row = conn.execute(
-                f"SELECT tratamiento, grado, nombre, cargo, plantilla_id FROM invitados WHERE id IN ({','.join('?' for _ in guest_ids)}) ORDER BY CASE id "
-                + " ".join(f"WHEN ? THEN {index}" for index, _ in enumerate(guest_ids))
-                + " ELSE 99 END LIMIT 1",
-                tuple(guest_ids) + tuple(guest_ids),
+                "SELECT tratamiento, grado, nombre, cargo, plantilla_id FROM invitados WHERE public_token = ? LIMIT 1",
+                (guest_id,),
             ).fetchone()
             if row:
                 for key in ("tratamiento", "grado", "nombre", "cargo"):
@@ -472,26 +497,24 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
             return
 
         if path == '/api/invitado':
-            guest_id = params.get('id', [''])[0].strip()
-            if not guest_id:
+            public_token = params.get('id', [''])[0].strip()
+            if not public_token:
                 self.send_json({"error": "ID requerido"}, status=400)
                 return
-            guest_ids = [guest_id]
-            if guest_id.isdigit():
-                guest_ids.append(f"invitado-{guest_id}")
+            if not re.fullmatch(rf'[A-Za-z0-9_-]{{{PUBLIC_TOKEN_LENGTH}}}', public_token):
+                self.send_json({"error": "Invitación no encontrada"}, status=404)
+                return
             conn = get_db()
             row = conn.execute(
-                f"SELECT id, tratamiento, grado, nombre, cargo, activo, plantilla_id, plantilla_version FROM invitados WHERE id IN ({','.join('?' for _ in guest_ids)}) ORDER BY CASE id "
-                + " ".join(f"WHEN ? THEN {index}" for index, _ in enumerate(guest_ids))
-                + " ELSE 99 END LIMIT 1",
-                tuple(guest_ids) + tuple(guest_ids)
+                "SELECT public_token, tratamiento, grado, nombre, cargo, activo, plantilla_id, plantilla_version FROM invitados WHERE public_token = ? AND activo = 1 LIMIT 1",
+                (public_token,)
             ).fetchone()
             conn.close()
             if not row:
                 self.send_json({"error": "Invitado no encontrado"}, status=404)
                 return
             self.send_json({
-                "id": row['id'],
+                "public_token": row['public_token'],
                 "tratamiento": row['tratamiento'],
                 "grado": row['grado'],
                 "nombre": row['nombre'],
@@ -550,7 +573,7 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
             filtro = params.get('filtro', [''])[0].lower()
             q = params.get('q', [''])[0].strip().lower()
 
-            query = "SELECT id, no, categoria, tratamiento, grado, nombre, cargo, activo, observaciones, plantilla_id, plantilla_version, updated_at FROM invitados WHERE 1=1"
+            query = "SELECT id, public_token, no, categoria, tratamiento, grado, nombre, cargo, activo, observaciones, plantilla_id, plantilla_version, updated_at FROM invitados WHERE 1=1"
             sql_params = []
 
             # Uso de índice idx_invitados_activo
@@ -577,6 +600,7 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
             items = [
                 {
                     "id": r["id"],
+                    "public_token": r["public_token"],
                     "no": r["no"],
                     "categoria": r["categoria"],
                     "tratamiento": r["tratamiento"],
@@ -854,9 +878,15 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
                 no = c.fetchone()[0]
                 guest_id = f"invitado-{no}"
 
+            existing_token = c.execute(
+                "SELECT public_token FROM invitados WHERE id = ?",
+                (guest_id,),
+            ).fetchone()
+            public_token = (existing_token["public_token"] if existing_token else None) or new_public_token(conn)
+
             c.execute("""
-            INSERT INTO invitados (id, no, categoria, tratamiento, grado, nombre, cargo, activo, observaciones, plantilla_id, plantilla_version)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO invitados (id, public_token, no, categoria, tratamiento, grado, nombre, cargo, activo, observaciones, plantilla_id, plantilla_version)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 no=excluded.no,
                 categoria=excluded.categoria,
@@ -869,13 +899,13 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
                 plantilla_id=COALESCE(excluded.plantilla_id, invitados.plantilla_id),
                 plantilla_version=COALESCE(excluded.plantilla_version, invitados.plantilla_version),
                 updated_at=CURRENT_TIMESTAMP;
-            """, (guest_id, no, categoria, tratamiento, grado, nombre, cargo, activo, observaciones, plantilla_id, plantilla_version))
+            """, (guest_id, public_token, no, categoria, tratamiento, grado, nombre, cargo, activo, observaciones, plantilla_id, plantilla_version))
 
             conn.commit()
             conn.close()
             sync_json_files()
 
-            self.send_json({"ok": True, "id": guest_id, "no": no})
+            self.send_json({"ok": True, "id": guest_id, "public_token": public_token, "no": no})
             return
 
         # 4. API: Eliminar Invitado
@@ -944,9 +974,15 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
                     self.send_json({"error": f"Registro {idx + 1}: {error}"}, status=422)
                     return
 
+                existing_token = c.execute(
+                    "SELECT public_token FROM invitados WHERE id = ?",
+                    (g_id,),
+                ).fetchone()
+                public_token = (existing_token["public_token"] if existing_token else None) or new_public_token(conn)
+
                 c.execute("""
-                INSERT INTO invitados (id, no, categoria, tratamiento, grado, nombre, cargo, activo, observaciones, plantilla_id, plantilla_version)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO invitados (id, public_token, no, categoria, tratamiento, grado, nombre, cargo, activo, observaciones, plantilla_id, plantilla_version)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     no=excluded.no,
                     categoria=excluded.categoria,
@@ -959,7 +995,7 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
                     plantilla_id=COALESCE(excluded.plantilla_id, invitados.plantilla_id),
                     plantilla_version=COALESCE(excluded.plantilla_version, invitados.plantilla_version),
                     updated_at=CURRENT_TIMESTAMP;
-                """, (g_id, no, categoria, tratamiento, grado, nombre, cargo, activo, obs, p_id, p_ver))
+                """, (g_id, public_token, no, categoria, tratamiento, grado, nombre, cargo, activo, obs, p_id, p_ver))
 
             conn.commit()
             conn.close()
@@ -972,6 +1008,7 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
 
 def run():
     ensure_auth_schema()
+    ensure_public_token_schema()
     print(f"Iniciando Servidor de Protocolo con SQLite en http://{HOST}:{PORT}")
     server = ThreadingHTTPServer((HOST, PORT), ProtocoloRequestHandler)
     try:

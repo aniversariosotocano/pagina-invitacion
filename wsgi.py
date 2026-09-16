@@ -8,7 +8,10 @@ so this module translates each WSGI request into the HTTP request expected by
 import io
 import os
 
-from server import ProtocoloRequestHandler
+from server import ProtocoloRequestHandler, ensure_public_token_schema
+
+
+ensure_public_token_schema()
 
 
 class _NonClosingBytesIO(io.BytesIO):
