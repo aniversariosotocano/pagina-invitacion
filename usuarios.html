@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Usuarios — Sistema de Protocolo Soto Cano</title>
+  <link rel="icon" type="image/png" href="assets/images/emblema-soto-cano.png">
+  <link rel="stylesheet" href="css/admin.css?v=20260916">
+  <link rel="stylesheet" href="css/users.css?v=20260916">
+</head>
+<body class="admin-body">
+  <div class="admin-container">
+    <header class="admin-header">
+      <div class="admin-header-title">
+        <img src="assets/images/emblema-soto-cano.png" alt="Emblema Soto Cano" class="admin-logo">
+        <div>
+          <h1>Gestión de Usuarios</h1>
+          <p>Acceso administrativo al sistema de invitaciones</p>
+        </div>
+      </div>
+      <div class="admin-header-actions">
+        <a href="admin.html" class="btn-secondary btn-icon-link">Volver al Registro</a>
+        <button type="button" id="btnLogout" class="btn-secondary">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <main class="users-layout">
+      <section class="admin-card users-card">
+        <h2 class="card-title">Agregar usuario administrativo</h2>
+        <p class="card-subtitle">Los usuarios pueden acceder al registro, ajustes y exportación. La contraseña nunca se muestra ni se almacena en texto plano.</p>
+        <form id="userForm" class="users-form" novalidate>
+          <div class="form-group">
+            <label for="newUsername">Usuario</label>
+            <input id="newUsername" class="form-control" type="text" minlength="3" maxlength="32" autocomplete="off" required>
+          </div>
+          <div class="form-group">
+            <label for="newPassword">Contraseña</label>
+            <input id="newPassword" class="form-control" type="password" minlength="6" maxlength="128" autocomplete="new-password" required>
+          </div>
+          <button id="createUserBtn" type="submit" class="btn-primary">Crear usuario</button>
+        </form>
+        <p class="users-help">Use al menos 6 caracteres. No se exigen mayúsculas, números ni símbolos. El usuario permite letras, números, punto, guion y guion bajo.</p>
+        <p id="userMessage" class="users-message" role="status" aria-live="polite"></p>
+
+        <div class="security-divider"></div>
+        <h2 class="card-title">Cambiar mi contraseña</h2>
+        <form id="passwordForm" class="password-form" novalidate>
+          <div class="form-group">
+            <label for="currentPassword">Contraseña actual</label>
+            <input id="currentPassword" class="form-control" type="password" autocomplete="current-password" required>
+          </div>
+          <div class="form-group">
+            <label for="newOwnPassword">Nueva contraseña</label>
+            <input id="newOwnPassword" class="form-control" type="password" minlength="6" maxlength="128" autocomplete="new-password" required>
+          </div>
+          <button id="changePasswordBtn" type="submit" class="btn-secondary">Actualizar contraseña</button>
+        </form>
+        <p id="passwordMessage" class="users-message" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="admin-card users-card">
+        <h2 class="card-title">Usuarios registrados</h2>
+        <div class="users-table-wrap">
+          <table class="users-table">
+            <thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Alta</th><th>Acción</th></tr></thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
+        </div>
+        <p id="usersEmpty" class="empty-notice" hidden>No hay usuarios registrados.</p>
+      </section>
+    </main>
+  </div>
+  <script src="js/auth.js?v=20260916"></script>
+  <script src="js/users.js?v=20260916"></script>
+</body>
+</html>

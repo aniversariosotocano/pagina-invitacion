@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Acceso al sistema — Base Aérea Soto Cano</title>
+  <link rel="icon" type="image/png" href="assets/images/emblema-soto-cano.png">
+  <link rel="stylesheet" href="css/auth.css?v=20260917">
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="loginTitle">
+      <img class="auth-mark" src="assets/images/emblema-soto-cano.png" alt="Emblema de la Base Aérea Soto Cano">
+      <p class="auth-kicker">Acceso restringido</p>
+      <h1 id="loginTitle">Sistema de Gestión de Invitaciones</h1>
+      <p class="auth-subtitle">Base Aérea “Cnel. José Enrique Soto Cano”</p>
+      <form id="loginForm" class="auth-form" novalidate>
+        <label for="loginUsername">Usuario
+          <input id="loginUsername" name="username" type="text" autocomplete="username" minlength="3" maxlength="32" required autofocus>
+        </label>
+        <label for="loginPassword">Contraseña
+          <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+        </label>
+        <button id="loginSubmit" class="auth-submit" type="submit">Ingresar al sistema</button>
+        <p id="loginMessage" class="auth-message" role="alert" aria-live="polite"></p>
+      </form>
+      <p class="auth-footer">Honor · Lealtad · Sacrificio</p>
+    </section>
+  </main>
+  <script src="js/auth.js?v=20260916"></script>
+</body>
+</html>

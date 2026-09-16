@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ajustes Globales y Plantilla Predeterminada — Protocolo Soto Cano</title>
+  
+  <link rel="icon" type="image/png" href="assets/images/emblema-soto-cano.png">
+  <link rel="stylesheet" href="css/admin.css?v=20260916">
+</head>
+<body class="admin-body">
+
+  <div class="admin-container">
+    
+    <!-- Encabezado Institucional con Retorno al Registro -->
+    <header class="admin-header">
+      <div class="admin-header-title">
+        <img src="assets/images/emblema-soto-cano.png" alt="Emblema Soto Cano" class="admin-logo">
+        <div>
+          <h1>Ajustes Globales y Plantilla Predeterminada</h1>
+          <p>Base Aérea “Cnel. José Enrique Soto Cano” — Configuración Institucional Centralizada</p>
+        </div>
+      </div>
+      <div class="admin-header-actions">
+        <a href="usuarios.html" class="btn-secondary btn-icon-link">Usuarios</a>
+        <a href="admin.html" id="btnBackToAdmin" class="btn-secondary btn-icon-link" title="Volver al Registro Oficial de Invitados">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Volver al Registro</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Layout Dividido a Ancho Completo: Parámetros del Evento y Tarjeta Predeterminada -->
+    <main class="settings-layout">
+
+      <!-- SECCIÓN 1: PARÁMETROS OFICIALES DEL EVENTO -->
+      <section class="settings-card">
+        
+        <div class="global-card-header">
+          <div>
+            <h2 class="card-title">Parámetros Oficiales del Evento</h2>
+            <p class="card-subtitle">Datos transversales que alimentan las tarjetas, cartas y enlaces de invitación.</p>
+          </div>
+          <div class="foundation-badge">
+            <span>Fundación Base Soto Cano: <strong>1 de Septiembre de 1988</strong></span>
+          </div>
+        </div>
+
+        <form id="formGlobalSettings" onsubmit="event.preventDefault();">
+          
+          <div class="settings-form-grid">
+            <div class="form-group form-col-full">
+              <label for="settingNombreEvento">Nombre Oficial del Evento *</label>
+              <input type="text" id="settingNombreEvento" class="form-control" value="Aniversario de la Base Aérea “Cnel. José Enrique Soto Cano”" placeholder="Ej: Aniversario de la Base Aérea “Cnel. José Enrique Soto Cano”" required minlength="4">
+            </div>
+            
+            <div class="form-group">
+              <label for="settingAniversario">Número de Aniversario Institucional</label>
+              <div style="display: flex; gap: 0.85rem; align-items: center; flex-wrap: wrap;">
+                <input type="number" id="settingAniversario" class="form-control" style="max-width: 105px; font-weight: 700; font-size: 1.1rem; color: var(--admin-gold);" value="38" min="1" max="150" required>
+                <label class="toggle-inline" title="Calcular automáticamente el aniversario a partir del año de fundación (1988)">
+                  <input type="checkbox" id="checkSettingAuto" checked>
+                  <span>Automático (Año − 1988)</span>
+                </label>
+              </div>
+              <p id="settingCalcNotice" class="calc-notice">Cálculo automático: 2026 − 1988 = 38.º Aniversario</p>
+            </div>
+
+            <div class="form-group">
+              <label for="settingFechaEvento">Fecha Oficial del Evento *</label>
+              <input type="text" id="settingFechaEvento" class="form-control" value="24 de Septiembre de 2026" placeholder="Ej: 24 de Septiembre de 2026" required minlength="4">
+            </div>
+
+            <div class="form-group">
+              <label for="settingHoraEvento">Hora Oficial *</label>
+              <input type="text" id="settingHoraEvento" class="form-control" value="10:00 am" placeholder="Ej: 10:00 am" required minlength="2">
+            </div>
+
+            <div class="form-group">
+              <label for="settingVestimenta">Código de Vestimenta Institucional *</label>
+              <input type="text" id="settingVestimenta" class="form-control" value="Militar Uniforme D (Kepi) / Invitados Especiales Formal" placeholder="Código de vestimenta" required>
+            </div>
+          </div>
+
+          <!-- Regla de Actualización de Plantilla -->
+          <div class="version-rule-box">
+            <div class="version-rule-header">
+              <strong style="color: #ffffff; font-size: 0.84rem;">Regla de Emisión de Nuevas Invitaciones</strong>
+            </div>
+            <p class="version-rule-text">
+              <strong>Regla de Emisión:</strong> Cuando se actualice la plantilla o los ajustes, estos aplicarán <em>exclusivamente a las nuevas invitaciones que se generen</em> a partir de este cambio. Las invitaciones ya emitidas en el registro conservan su formato histórico.
+            </p>
+          </div>
+
+          <div class="global-actions-bar" style="margin-top: 1rem;">
+            <div style="font-size: 0.76rem; color: var(--admin-text-sub);">
+              Estado del Registro: <strong style="color: #7de894;">Sincronizado</strong>
+            </div>
+            <button type="button" id="btnSaveSettings" class="btn-primary">
+              Guardar Ajustes y Plantilla
+            </button>
+          </div>
+
+        </form>
+
+      </section>
+
+      <!-- SECCIÓN 2: TARJETAS OFICIALES PREDETERMINADAS -->
+      <section class="settings-card">
+        
+        <div class="global-card-header">
+          <div>
+            <h2 class="card-title">Tarjetas Oficiales Predeterminadas</h2>
+            <p class="card-subtitle">Fondo aeronáutico y estilo que se asignará a cada nueva invitación.</p>
+          </div>
+        </div>
+
+        <!-- Galería de Selección de Fondo/Tema -->
+        <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--admin-gold-light); margin-bottom: 0.6rem;">
+          Seleccione la Plantilla Predeterminada:
+        </label>
+
+        <div class="theme-selector-grid" id="themeSelectorGrid">
+          
+          <div class="theme-card-option active" data-theme="tucano-sunset">
+            <div class="theme-thumb-container">
+              <img src="assets/images/tucano-atardecer.webp" alt="Tucano Atardecer" class="theme-thumb-img">
+            </div>
+            <span class="theme-card-title">Tucano Atardecer (Oficial)</span>
+          </div>
+
+          <div class="theme-card-option" data-theme="supertucano">
+            <div class="theme-thumb-container">
+              <img src="assets/images/Supertucano.webp" alt="Super Tucano" class="theme-thumb-img">
+            </div>
+            <span class="theme-card-title">Super Tucano EMB-312</span>
+          </div>
+
+          <div class="theme-card-option" data-theme="maule">
+            <div class="theme-thumb-container">
+              <img src="assets/images/Maule.webp" alt="Maule M-7" class="theme-thumb-img">
+            </div>
+            <span class="theme-card-title">Maule M-7 Escuadrilla</span>
+          </div>
+
+          <div class="theme-card-option" data-theme="tucanos-formacion">
+            <div class="theme-thumb-container">
+              <img src="assets/images/tucanos-formacion.webp" alt="Tucanos Formación" class="theme-thumb-img">
+            </div>
+            <span class="theme-card-title">Tucanos en Formación</span>
+          </div>
+
+          <div class="theme-card-option" data-theme="soto-cano-pista">
+            <div class="theme-thumb-container">
+              <img src="assets/images/soto-cano-pista.webp" alt="Pista Soto Cano" class="theme-thumb-img">
+            </div>
+            <span class="theme-card-title">Pista y Rampa Soto Cano</span>
+          </div>
+
+          <div class="theme-card-option" data-theme="tucano-vuelo">
+            <div class="theme-thumb-container">
+              <img src="assets/images/tucano-vuelo.webp" alt="Tucano Vuelo" class="theme-thumb-img">
+            </div>
+            <span class="theme-card-title">Tucano Vuelo Operativo</span>
+          </div>
+
+          <div class="theme-card-option" data-theme="classic">
+            <div class="theme-thumb-container" style="background: radial-gradient(circle, #0e294d 0%, #050f1c 100%);">
+              <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--admin-gold); font-size: 0.7rem; font-weight: 700;">
+                AZUL Y ORO
+              </div>
+            </div>
+            <span class="theme-card-title">Clásico Ceremonial</span>
+          </div>
+
+        </div>
+
+        <!-- Contenedor del Canvas de Vista Previa -->
+        <div class="canvas-preview-wrapper">
+          <span class="canvas-preview-badge">Plantilla Predeterminada en Vivo</span>
+          <canvas id="settingsCanvas" width="1200" height="630" style="width: 100%; height: auto; display: block; border-radius: 4px;"></canvas>
+        </div>
+
+        <div class="global-actions-bar" style="margin-top: 1.25rem; justify-content: flex-end;">
+          <button type="button" id="btnDownloadSampleCard" class="btn-secondary">
+            Descargar Muestra PNG
+          </button>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Modal de Advertencia de Cambios sin Guardar -->
+  <dialog id="dialogUnsavedChanges" class="protocol-dialog">
+    <div class="dialog-content" style="max-width: 500px;">
+      <div class="dialog-header">
+        <div>
+          <h3 class="dialog-title" style="color: var(--admin-gold-light); display: flex; align-items: center; gap: 0.5rem;">
+            <span>⚠️</span> Cambios sin Guardar
+          </h3>
+          <p class="dialog-subtitle">Se han detectado modificaciones en los ajustes institucionales.</p>
+        </div>
+        <button type="button" class="dialog-close-btn" data-close-dialog="dialogUnsavedChanges" title="Cerrar ventana">✕</button>
+      </div>
+
+      <div style="padding: 1rem 0; font-size: 0.88rem; line-height: 1.5; color: var(--admin-text-main);">
+        <p style="margin-bottom: 0.75rem;">
+          Ha modificado los parámetros del evento o la plantilla predeterminada y aún no ha guardado los cambios.
+        </p>
+        <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 0.85rem;">
+          <p style="margin: 0; font-size: 0.82rem; color: #f1f5f9;">
+            ¿Desea guardar los cambios antes de salir, descartarlos y volver al registro, o permanecer en esta página?
+          </p>
+        </div>
+      </div>
+
+      <div class="dialog-footer" style="display: flex; justify-content: flex-end; gap: 0.6rem; flex-wrap: wrap;">
+        <button type="button" class="btn-secondary" data-close-dialog="dialogUnsavedChanges">
+          Seguir Editando
+        </button>
+        <button type="button" id="btnDiscardAndLeave" class="btn-secondary" style="background: rgba(220, 53, 69, 0.15); border-color: rgba(220, 53, 69, 0.4); color: #f8949e;">
+          Salir sin Guardar
+        </button>
+        <button type="button" id="btnSaveAndLeave" class="btn-primary">
+          Guardar y Salir
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Notificación Toast -->
+  <div id="settingsToast" class="toast-msg"></div>
+
+  <!-- Scripts -->
+  <script src="js/og-canvas.js?v=20260916"></script>
+  <script src="js/auth.js?v=20260916"></script>
+  <script src="js/settings.js?v=20260917"></script>
+</body>
+</html>

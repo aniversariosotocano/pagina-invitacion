@@ -1,0 +1,28 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Python caches and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.virtualenvs/
+
+# JavaScript dependencies and local tooling
+node_modules/
+.agents/
+
+# Local database and derived guest data
+assets/data/protocolo.db
+assets/data/*.sqlite3
+assets/data/*.db
+assets/data/invitados.json
+
+# Operating-system/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
