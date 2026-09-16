@@ -1,6 +1,7 @@
 """Renderizador Open Graph que replica la tarjeta generada en el panel."""
 
 from io import BytesIO
+import math
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -117,10 +118,12 @@ def _background(data):
     canvas = Image.alpha_composite(canvas, overlay)
 
     vignette = Image.new("RGBA", (WIDTH, HEIGHT))
-    vignette_draw = ImageDraw.Draw(vignette)
-    for radius in range(760, 280, -8):
-        alpha = int(112 * (760 - radius) / 480)
-        vignette_draw.ellipse((600 - radius, 315 - radius, 600 + radius, 315 + radius), outline=(0, 0, 0, alpha), width=8)
+    vignette_pixels = vignette.load()
+    for y in range(HEIGHT):
+        for x in range(WIDTH):
+            distance = ((x - 600) ** 2 + (y - 315) ** 2) ** 0.5
+            alpha = int(max(0, min(0.7, (distance - 280) / 480 * 0.7)) * 255)
+            vignette_pixels[x, y] = (0, 0, 0, alpha)
     return Image.alpha_composite(canvas, vignette)
 
 
@@ -152,6 +155,15 @@ def _title_lines(title):
     return " ".join(words[:midpoint]), " ".join(words[midpoint:])
 
 
+def _star(draw, cx, cy, outer=8.5, inner=3.8):
+    points = []
+    for index in range(10):
+        radius = outer if index % 2 == 0 else inner
+        angle = index * 3.141592653589793 / 5 - 3.141592653589793 / 2
+        points.append((cx + radius * math.cos(angle), cy + radius * math.sin(angle)))
+    draw.polygon(points, fill=(250, 230, 158, 255))
+
+
 def render_preview(data):
     canvas = _background(data)
     draw = ImageDraw.Draw(canvas)
@@ -164,8 +176,8 @@ def render_preview(data):
         draw.line((x + dx * 28, y, x, y, x, y + dy * 28), fill=gold, width=3)
 
     _emblem(canvas)
-    star_font = _font(22, True, serif=True)
-    _center(draw, "★  ★", 168, star_font, pale_gold)
+    _star(draw, 580, 180)
+    _star(draw, 620, 180)
 
     anniversary = _value(data.get("aniversario"), "38")
     event = _value(data.get("nombre_evento"), "Aniversario de la Base Aérea “Cnel. José Enrique Soto Cano”")
