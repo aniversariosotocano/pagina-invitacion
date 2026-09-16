@@ -839,30 +839,13 @@ function downloadGuestCardDirect(guest) {
 
 /**
  * 6. CONSTRUCCIÓN DE ENLACE PERSONALIZADO
- * Aplica los parámetros de identidad y hereda los globales
+ * El ID es la única fuente de datos del enlace público.
  */
 function buildGuestUrl(guest) {
   const base = window.location.origin + window.location.pathname.replace('admin.html', '').replace(/\/$/, '') + '/index.html';
-  const params = new URLSearchParams();
-
-  // Preferir el ID evita exponer datos personales en la URL y permite que
-  // servidor genere la preview Open Graph con la información de la BD.
-  if (guest.id) {
-    params.set('id', guest.id);
-  } else {
-    if (guest.nombre) params.set('nombre', guest.nombre);
-    if (guest.grado) params.set('grado', guest.grado);
-    if (guest.cargo) params.set('cargo', guest.cargo);
-    if (guest.tratamiento) params.set('tratamiento', guest.tratamiento);
-  }
-  if (globalConfig.nombre_evento) params.set('nombre_evento', globalConfig.nombre_evento);
-  if (globalConfig.fecha_evento) params.set('fecha', globalConfig.fecha_evento);
-  if (globalConfig.hora_evento) params.set('hora', globalConfig.hora_evento);
-  if (globalConfig.aniversario) params.set('aniversario', globalConfig.aniversario);
-  if (globalConfig.vestimenta) params.set('vestimenta', globalConfig.vestimenta);
-  if (guest.plantilla_id) params.set('tema', guest.plantilla_id);
-
-  return `${base}?${params.toString()}`;
+  const guestId = String(guest?.id || '').trim();
+  if (!guestId) return base;
+  return `${base}?${new URLSearchParams({ id: guestId }).toString()}`;
 }
 
 /**
