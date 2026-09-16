@@ -195,6 +195,18 @@ class ProtocoloRequestHandler(SimpleHTTPRequestHandler):
             self.address_string(), self.log_date_time_string(), message
         ))
 
+    def do_HEAD(self):
+        parsed = urlparse(self.path)
+        if parsed.path == '/og-image.png':
+            preview = render_preview(self.preview_data(parse_qs(parsed.query)))
+            self.send_response(200)
+            self.send_header('Content-Type', 'image/png')
+            self.send_header('Content-Length', str(len(preview)))
+            self.send_header('Cache-Control', 'public, max-age=300')
+            self.end_headers()
+            return
+        super().do_HEAD()
+
     def copyfile(self, source, outputfile):
         """Una navegación o recarga puede cancelar una descarga en curso."""
         try:
