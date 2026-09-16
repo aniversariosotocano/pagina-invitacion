@@ -845,10 +845,16 @@ function buildGuestUrl(guest) {
   const base = window.location.origin + window.location.pathname.replace('admin.html', '').replace(/\/$/, '') + '/index.html';
   const params = new URLSearchParams();
 
-  if (guest.nombre) params.set('nombre', guest.nombre);
-  if (guest.grado) params.set('grado', guest.grado);
-  if (guest.cargo) params.set('cargo', guest.cargo);
-  if (guest.tratamiento) params.set('tratamiento', guest.tratamiento);
+  // Preferir el ID evita exponer datos personales en la URL y permite que
+  // servidor genere la preview Open Graph con la información de la BD.
+  if (guest.id) {
+    params.set('id', guest.id);
+  } else {
+    if (guest.nombre) params.set('nombre', guest.nombre);
+    if (guest.grado) params.set('grado', guest.grado);
+    if (guest.cargo) params.set('cargo', guest.cargo);
+    if (guest.tratamiento) params.set('tratamiento', guest.tratamiento);
+  }
   if (globalConfig.nombre_evento) params.set('nombre_evento', globalConfig.nombre_evento);
   if (globalConfig.fecha_evento) params.set('fecha', globalConfig.fecha_evento);
   if (globalConfig.hora_evento) params.set('hora', globalConfig.hora_evento);
